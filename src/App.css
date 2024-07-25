@@ -1,0 +1,27 @@
+* {
+  outline: none;
+  margin: 0;
+}
+
+.custom-color-input {
+  -webkit-appearance: none;
+  border: none;
+  padding: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.custom-color-input::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+.custom-color-input::-webkit-color-swatch {
+  border: none;
+}
+
+.custom-color-input::-moz-color-swatch {
+  border: none;
+}
