@@ -1,14 +1,14 @@
 import React, { useRef, useState } from "react";
-import { Layer, Rect, Stage, Text } from "react-konva";
+import { Group, Layer, Rect, Stage, Text } from "react-konva";
 import Konvaimage from "../image/Konvaimage";
 import toast from "react-hot-toast";
-import { Color } from "fabric";
 
 function Stages({ imageSrc, Color, action }) {
   const stageRef = useRef();
 
   const [rectangles, setRectangles] = useState([]);
-  const selectedImage_ID = useRef(null); // Initialize with null
+  const selectedImage_ID = useRef(null);
+  const [hoveredId, setHoveredId] = useState(null);
 
   const isPainting = useRef(false);
   const moved = useRef(false);
@@ -20,7 +20,7 @@ function Stages({ imageSrc, Color, action }) {
     }
     const stage = stageRef.current;
     const { x, y } = stage.getPointerPosition();
-    selectedImage_ID.current = Math.random(); // Generate a unique ID
+    selectedImage_ID.current = Math.random(); //random id
     isPainting.current = true;
     setRectangles((prevRectangles) => [
       ...prevRectangles,
@@ -31,7 +31,8 @@ function Stages({ imageSrc, Color, action }) {
         width: 0,
         height: 0,
         Color,
-        annotation: "", // Initialize annotation as empty string
+        annotation: "",
+        edit: false,
       },
     ]);
   }
@@ -66,6 +67,7 @@ function Stages({ imageSrc, Color, action }) {
               return {
                 ...rectangle,
                 annotation: annotation,
+                edit: true,
               };
             }
             return rectangle;
@@ -78,6 +80,23 @@ function Stages({ imageSrc, Color, action }) {
     moved.current = false;
     console.log("Current ID after annotation:", selectedImage_ID.current);
     //selectedImage_ID.current = null;    ---it was causing unknown issue therefore i made it null in onMouseDown----
+  }
+
+  function handleEdit(id) {
+    const annotation = prompt("Edit ");
+    if (annotation !== null) {
+      setRectangles((prevRectangles) =>
+        prevRectangles.map((rectangle) =>
+          rectangle.id === id ? { ...rectangle, annotation } : rectangle
+        )
+      );
+    }
+  }
+
+  function handleDelete(id) {
+    setRectangles((prevRectangles) =>
+      prevRectangles.filter((rectangle) => rectangle.id !== id)
+    );
   }
   return (
     <>
@@ -97,7 +116,11 @@ function Stages({ imageSrc, Color, action }) {
             {rectangles.map((rectangle) => {
               console.log(rectangle);
               return (
-                <React.Fragment key={rectangle.id}>
+                <Group
+                  key={rectangle.id}
+                  onMouseEnter={() => setHoveredId(rectangle.id)}
+                  onMouseLeave={() => setHoveredId(null)}
+                >
                   <Rect
                     x={rectangle.x}
                     y={rectangle.y}
@@ -115,7 +138,28 @@ function Stages({ imageSrc, Color, action }) {
                       fill={rectangle.Color}
                     />
                   )}
-                </React.Fragment>
+                  {hoveredId === rectangle.id && rectangle.edit && (
+                    <>
+                      <Text
+                        x={rectangle.x}
+                        y={rectangle.y + 20}
+                        text="Edit"
+                        fontSize={15}
+                        fill="blue"
+                        f
+                        onClick={() => handleEdit(rectangle.id)}
+                      />
+                      <Text
+                        x={rectangle.x + 30}
+                        y={rectangle.y + 20}
+                        text="Delete"
+                        fontSize={15}
+                        fill="red"
+                        onClick={() => handleDelete(rectangle.id)}
+                      />
+                    </>
+                  )}
+                </Group>
               );
             })}
           </Layer>
