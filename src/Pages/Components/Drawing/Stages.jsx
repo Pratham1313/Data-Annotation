@@ -3,11 +3,18 @@ import { Group, Layer, Rect, Stage, Text } from "react-konva";
 import Konvaimage from "../image/Konvaimage";
 import toast from "react-hot-toast";
 
-function Stages({ imageSrc, Color, action }) {
+function Stages({ images, Color, action, current }) {
   const stageRef = useRef();
+  const [rectangles, setRectangles] = useState(
+    images.map((image, index) => ({
+      image_id: index,
+      rectangles: [],
+    }))
+  ); //all data for each annotations for each image
 
-  const [rectangles, setRectangles] = useState([]);
-  const selectedImage_ID = useRef(null);
+  const currentImage = rectangles.find((image) => image.image_id === current); //current image's annotation
+
+  const selectedImage_ID = useRef(null); //id for rectangle not image
   const [hoveredId, setHoveredId] = useState(null);
 
   const isPainting = useRef(false);
@@ -16,25 +23,35 @@ function Stages({ imageSrc, Color, action }) {
   function onMouseDown() {
     selectedImage_ID.current = null;
     if (!action) {
-      toast.error("select type of bounding box");
+      toast.error("Select type of bounding box");
+      return;
     }
     const stage = stageRef.current;
     const { x, y } = stage.getPointerPosition();
-    selectedImage_ID.current = Math.random(); //random id
+    selectedImage_ID.current = Math.random(); // random id
     isPainting.current = true;
-    setRectangles((prevRectangles) => [
-      ...prevRectangles,
-      {
-        id: selectedImage_ID.current,
-        x,
-        y,
-        width: 0,
-        height: 0,
-        Color,
-        annotation: "",
-        edit: false,
-      },
-    ]);
+    setRectangles((prevRectangles) =>
+      prevRectangles.map((entry) =>
+        entry.image_id === current
+          ? {
+              ...entry,
+              rectangles: [
+                ...entry.rectangles,
+                {
+                  id: selectedImage_ID.current,
+                  x,
+                  y,
+                  width: 0,
+                  height: 0,
+                  Color,
+                  annotation: "",
+                  edit: false,
+                },
+              ],
+            }
+          : entry
+      )
+    );
   }
 
   function onMouseMove() {
@@ -43,16 +60,22 @@ function Stages({ imageSrc, Color, action }) {
     const stage = stageRef.current;
     const { x, y } = stage.getPointerPosition();
     setRectangles((prevRectangles) =>
-      prevRectangles.map((rectangle) => {
-        if (rectangle.id === selectedImage_ID.current) {
-          return {
-            ...rectangle,
-            width: x - rectangle.x,
-            height: y - rectangle.y,
-          };
-        }
-        return rectangle;
-      })
+      prevRectangles.map((entry) =>
+        entry.image_id === current
+          ? {
+              ...entry,
+              rectangles: entry.rectangles.map((rectangle) =>
+                rectangle.id === selectedImage_ID.current
+                  ? {
+                      ...rectangle,
+                      width: x - rectangle.x,
+                      height: y - rectangle.y,
+                    }
+                  : rectangle
+              ),
+            }
+          : entry
+      )
     );
   }
 
@@ -61,33 +84,43 @@ function Stages({ imageSrc, Color, action }) {
       const annotation = prompt("Enter annotation text:");
       if (annotation !== null) {
         setRectangles((prevRectangles) =>
-          prevRectangles.map((rectangle) => {
-            console.log("Before", selectedImage_ID.current);
-            if (rectangle.id === selectedImage_ID.current) {
-              return {
-                ...rectangle,
-                annotation: annotation,
-                edit: true,
-              };
-            }
-            return rectangle;
-          })
+          prevRectangles.map((entry) =>
+            entry.image_id === current
+              ? {
+                  ...entry,
+                  rectangles: entry.rectangles.map((rectangle) =>
+                    rectangle.id === selectedImage_ID.current
+                      ? {
+                          ...rectangle,
+                          annotation: annotation,
+                          edit: true,
+                        }
+                      : rectangle
+                  ),
+                }
+              : entry
+          )
         );
       }
     }
 
     isPainting.current = false;
     moved.current = false;
-    console.log("Current ID after annotation:", selectedImage_ID.current);
-    //selectedImage_ID.current = null;    ---it was causing unknown issue therefore i made it null in onMouseDown----
   }
 
   function handleEdit(id) {
-    const annotation = prompt("Edit ");
+    const annotation = prompt("Edit annotation:");
     if (annotation !== null) {
       setRectangles((prevRectangles) =>
-        prevRectangles.map((rectangle) =>
-          rectangle.id === id ? { ...rectangle, annotation } : rectangle
+        prevRectangles.map((entry) =>
+          entry.image_id === current
+            ? {
+                ...entry,
+                rectangles: entry.rectangles.map((rectangle) =>
+                  rectangle.id === id ? { ...rectangle, annotation } : rectangle
+                ),
+              }
+            : entry
         )
       );
     }
@@ -95,73 +128,79 @@ function Stages({ imageSrc, Color, action }) {
 
   function handleDelete(id) {
     setRectangles((prevRectangles) =>
-      prevRectangles.filter((rectangle) => rectangle.id !== id)
+      prevRectangles.map((entry) =>
+        entry.image_id === current
+          ? {
+              ...entry,
+              rectangles: entry.rectangles.filter(
+                (rectangle) => rectangle.id !== id
+              ),
+            }
+          : entry
+      )
     );
   }
+
   return (
     <>
-      {imageSrc && (
+      {images[current] && (
         <Stage
           ref={stageRef}
-          width={imageSrc.width}
-          height={imageSrc.height}
+          width={images[current].width}
+          height={images[current].height}
           onMouseDown={onMouseDown}
           onMouseMove={onMouseMove}
           onMouseUp={onPointerUp}
           className="border-2 bg-red-500 overflow-hidden"
-          style={{ width: imageSrc.width }}
+          style={{ width: images[current].width }}
         >
           <Layer>
-            <Konvaimage image={imageSrc} />
-            {rectangles.map((rectangle) => {
-              console.log(rectangle);
-              return (
-                <Group
-                  key={rectangle.id}
-                  onMouseEnter={() => setHoveredId(rectangle.id)}
-                  onMouseLeave={() => setHoveredId(null)}
-                >
-                  <Rect
+            <Konvaimage image={images[current]} />
+            {currentImage.rectangles.map((rectangle) => (
+              <Group
+                key={rectangle.id}
+                onMouseEnter={() => setHoveredId(rectangle.id)}
+                onMouseLeave={() => setHoveredId(null)}
+              >
+                <Rect
+                  x={rectangle.x}
+                  y={rectangle.y}
+                  strokeWidth={2}
+                  height={rectangle.height}
+                  width={rectangle.width}
+                  stroke={rectangle.Color}
+                />
+                {rectangle.annotation && (
+                  <Text
                     x={rectangle.x}
-                    y={rectangle.y}
-                    strokeWidth={2}
-                    height={rectangle.height}
-                    width={rectangle.width}
-                    stroke={rectangle.Color}
+                    y={rectangle.y - 20}
+                    text={rectangle.annotation}
+                    fontSize={16}
+                    fill={rectangle.Color}
                   />
-                  {rectangle.annotation && (
+                )}
+                {hoveredId === rectangle.id && rectangle.edit && (
+                  <>
                     <Text
                       x={rectangle.x}
-                      y={rectangle.y - 20}
-                      text={rectangle.annotation}
-                      fontSize={16}
-                      fill={rectangle.Color}
+                      y={rectangle.y + 20}
+                      text="Edit"
+                      fontSize={15}
+                      fill="blue"
+                      onClick={() => handleEdit(rectangle.id)}
                     />
-                  )}
-                  {hoveredId === rectangle.id && rectangle.edit && (
-                    <>
-                      <Text
-                        x={rectangle.x}
-                        y={rectangle.y + 20}
-                        text="Edit"
-                        fontSize={15}
-                        fill="blue"
-                        f
-                        onClick={() => handleEdit(rectangle.id)}
-                      />
-                      <Text
-                        x={rectangle.x + 30}
-                        y={rectangle.y + 20}
-                        text="Delete"
-                        fontSize={15}
-                        fill="red"
-                        onClick={() => handleDelete(rectangle.id)}
-                      />
-                    </>
-                  )}
-                </Group>
-              );
-            })}
+                    <Text
+                      x={rectangle.x + 30}
+                      y={rectangle.y + 20}
+                      text="Delete"
+                      fontSize={15}
+                      fill="red"
+                      onClick={() => handleDelete(rectangle.id)}
+                    />
+                  </>
+                )}
+              </Group>
+            ))}
           </Layer>
         </Stage>
       )}

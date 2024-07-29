@@ -3,7 +3,7 @@ import { BsVectorPen } from "react-icons/bs";
 
 function Options({ Color, setColor, action, setAction }) {
   return (
-    <div className=" px-[10px] h-[55.5px] bg-slate-500 rounded-full flex justify-center items-center gap-2 ">
+    <div className=" w-[10rem]  h-[55.5px] bg-slate-500 rounded-full flex justify-center items-center gap-2 ">
       <button
         className={`rounded-full w-11 h-11 flex items-center justify-center ${
           action === "rectangle" ? "bg-slate-200" : "bg-slate-400"
