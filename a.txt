@@ -1,0 +1,114 @@
+
+/*import { useState, useEffect } from "react";
+import { Stage, Layer, Line, Rect } from "react-konva";
+
+const Home = () => {
+  const [points, setPoints] = useState([]);
+  const [curMousePos, setCurMousePos] = useState([0, 0]);
+  const [isMouseOverStartPoint, setIsMouseOverStartPoint] = useState(false);
+  const [isFinished, setIsFinished] = useState(false);
+
+  useEffect(() => {
+    console.log(window.innerHeight);
+  }, []);
+
+  const getMousePos = (stage) => {
+    const pointerPosition = stage.getPointerPosition();
+    return [pointerPosition.x, pointerPosition.y];
+  };
+
+  const handleClick = (event) => {
+    const stage = event.target.getStage();
+    const mousePos = getMousePos(stage);
+
+    if (isFinished) {
+      return;
+    }
+    if (isMouseOverStartPoint && points.length >= 3) {
+      setIsFinished(true);
+    } else {
+      setPoints((prevPoints) => [...prevPoints, mousePos]);
+    }
+  };
+
+  const handleMouseMove = (event) => {
+    const stage = event.target.getStage();
+    const mousePos = getMousePos(stage);
+    setCurMousePos(mousePos);
+  };
+
+  const handleMouseOverStartPoint = (event) => {
+    if (isFinished || points.length < 3) return;
+    event.target.scale({ x: 2, y: 2 });
+    setIsMouseOverStartPoint(true);
+  };
+
+  const handleMouseOutStartPoint = (event) => {
+    event.target.scale({ x: 1, y: 1 });
+    setIsMouseOverStartPoint(false);
+  };
+
+  const handleDragMovePoint = (event) => {
+    const index = event.target.index - 1;
+    const pos = [event.target.attrs.x, event.target.attrs.y];
+    setPoints((prevPoints) => [
+      ...prevPoints.slice(0, index),
+      pos,
+      ...prevPoints.slice(index + 1),
+    ]);
+  };
+
+  const flattenedPoints = points
+    .concat(isFinished ? [] : curMousePos)
+    .reduce((a, b) => a.concat(b), []);
+
+  return (
+    <Stage
+      width={window.innerWidth}
+      height={window.innerHeight}
+      onMouseDown={handleClick}
+      onMouseMove={handleMouseMove}
+    >
+      <Layer>
+        <Line
+          points={flattenedPoints}
+          stroke="black"
+          strokeWidth={1}
+          closed={isFinished}
+        />
+        {points.map((point, index) => {
+          const width = 6;
+          const x = point[0] - width / 2;
+          const y = point[1] - width / 2;
+          const startPointAttr =
+            index === 0
+              ? {
+                  hitStrokeWidth: 12,
+                  onMouseOver: handleMouseOverStartPoint,
+                  onMouseOut: handleMouseOutStartPoint,
+                }
+              : null;
+          return (
+            <Rect
+              key={index}
+              x={x}
+              y={y}
+              width={width}
+              height={width}
+              fill="white"
+              stroke="black"
+              strokeWidth={1}
+              onDragMove={handleDragMovePoint}
+              draggable
+              {...startPointAttr}
+            />
+          );
+        })}
+      </Layer>
+    </Stage>
+  );
+};
+
+export default Home; */
+
+

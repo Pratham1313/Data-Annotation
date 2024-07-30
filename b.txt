@@ -1,0 +1,146 @@
+// src/App.js
+import React, { useState, useRef } from 'react';
+import { Stage, Layer, Rect, Image as KonvaImage, Text } from 'react-konva';
+import { useImage } from 'react-konva'; // Correct import
+
+const URLImage = ({ image }) => {
+  const [img] = useImage(image.src);
+  return <KonvaImage image={img} width={image.width} height={image.height} />;
+};
+
+const App = () => {
+  const [image, setImage] = useState(null);
+  const [rectangles, setRectangles] = useState([]);
+  const [selectedId, setSelectedId] = useState(null);
+  const stageRef = useRef();
+
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new window.Image();
+      img.src = event.target.result;
+      img.onload = () => {
+        setImage({ src: img.src, width: img.width, height: img.height });
+      };
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleMouseDown = (e) => {
+    if (e.target.attrs.id) return; // if clicked on a rectangle, return
+    const { x, y } = e.target.getStage().getPointerPosition();
+    setRectangles((prevRectangles) => [
+      ...prevRectangles,
+      {
+        x,
+        y,
+        width: 0,
+        height: 0,
+        id: rect${rectangles.length},
+        annotation: '',
+      },
+    ]);
+    setSelectedId(rect${rectangles.length});
+  };
+
+  const handleMouseMove = (e) => {
+    if (!selectedId) return;
+    const stage = e.target.getStage();
+    const { x, y } = stage.getPointerPosition();
+    setRectangles((prevRectangles) =>
+      prevRectangles.map((rect) => {
+        if (rect.id === selectedId) {
+          return {
+            ...rect,
+            width: x - rect.x,
+            height: y - rect.y,
+          };
+        }
+        return rect;
+      })
+    );
+  };
+
+  const handleMouseUp = () => {
+    const annotation = prompt('Enter annotation:');
+    setRectangles((prevRectangles) =>
+      prevRectangles.map((rect) => {
+        if (rect.id === selectedId) {
+          return { ...rect, annotation };
+        }
+        return rect;
+      })
+    );
+    setSelectedId(null);
+  };
+
+  const handleRectClick = (e, id) => {
+    e.cancelBubble = true;
+    const newAnnotation = prompt('Edit annotation:', rectangles.find(rect => rect.id === id).annotation);
+    setRectangles((prevRectangles) =>
+      prevRectangles.map((rect) => {
+        if (rect.id === id) {
+          return { ...rect, annotation: newAnnotation };
+        }
+        return rect;
+      })
+    );
+  };
+
+  const handleDownload = () => {
+    const uri = stageRef.current.toDataURL();
+    const link = document.createElement('a');
+    link.download = 'annotated-image.png';
+    link.href = uri;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  return (
+    <div>
+      <input type="file" accept="image/*" onChange={handleImageUpload} />
+      <button onClick={handleDownload} disabled={!image}>Download</button>
+      {image && (
+        <Stage
+          width={image.width}
+          height={image.height}
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          ref={stageRef}
+          style={{ border: '1px solid black' }}
+        >
+          <Layer>
+            <URLImage image={image} />
+            {rectangles.map((rect) => (
+              <React.Fragment key={rect.id}>
+                <Rect
+                  id={rect.id}
+                  x={rect.x}
+                  y={rect.y}
+                  width={rect.width}
+                  height={rect.height}
+                  stroke="red"
+                  onClick={(e) => handleRectClick(e, rect.id)}
+                />
+                {rect.annotation && (
+                  <Text
+                    x={rect.x}
+                    y={rect.y - 20}
+                    text={rect.annotation}
+                    fontSize={16}
+                    fill="black"
+                  />
+                )}
+              </React.Fragment>
+            ))}
+          </Layer>
+        </Stage>
+      )}
+    </div>
+  );
+};
+
+export default App;
