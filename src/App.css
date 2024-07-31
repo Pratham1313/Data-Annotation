@@ -27,13 +27,14 @@
 }
 
 .custom-scrollbar {
-  --sb-track-color: #50585b;
-  --sb-thumb-color: #6baf8d;
-  --sb-size: 5px;
+  --sb-track-color: #280f2f;
+  --sb-thumb-color: #ce3dff;
+  --sb-size: 10px;
 }
 
 .custom-scrollbar::-webkit-scrollbar {
   width: var(--sb-size);
+  height: 8px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
