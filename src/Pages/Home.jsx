@@ -30,7 +30,31 @@ function Home() {
   const currentImage = annotations.find((image) => image.image_id === current);
 
   function submit() {
-    console.log(currentImage);
+    const src = imageSrc[current].src;
+    const formData = new FormData();
+    formData.append("src", src);
+    console.log(currentImage.annotations);
+    formData.append(
+      "annotations",
+      JSON.stringify({ annotations: currentImage.annotations })
+    );
+
+    axios
+      .post("http://127.0.0.1:8000/upload", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      })
+      .then((response) => {
+        console.log(response.data);
+      })
+      .catch((error) => {
+        if (error.response) {
+          console.error("Error response data:", error.response.data);
+        } else {
+          console.error("Network Error:", error.message);
+        }
+      });
   }
 
   return (
