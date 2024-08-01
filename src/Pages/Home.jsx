@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Imageupload from "./Components/image/Imageupload";
 import Stages from "./Components/Drawing/Stages";
 import Options from "./Components/Drawing/Options";
 import useStore from "../Zustand/Alldata";
 import toast from "react-hot-toast";
+import axios from "axios";
 
 function Home() {
   const {
@@ -19,7 +20,18 @@ function Home() {
     set_classlabel,
     classes,
     add_classes,
+    all_annotations,
   } = useStore();
+
+  const [annotations, setAnnotations] = useState(all_annotations); //just for converting in array
+  useEffect(() => {
+    setAnnotations(all_annotations);
+  }, [all_annotations]);
+  const currentImage = annotations.find((image) => image.image_id === current);
+
+  function submit() {
+    console.log(currentImage);
+  }
 
   return (
     <div className="w-full h-screen flex justify-center items-center bg-gradient-to-t from-purple-900 to-slate-900 overflow-hidden">
@@ -54,6 +66,7 @@ function Home() {
                   placeholder=""
                   value={class_label}
                   onChange={(e) => set_classlabel(e.target.value)}
+                  style={{ maxHeight: "5rem", overflowY: "auto" }}
                 >
                   <option value="">Select Class Label</option>
                   {classes.map((cls, index) => {
@@ -74,8 +87,15 @@ function Home() {
                   onClick={() => {
                     const classs = prompt("Enter class name:");
                     if (classs !== null && classs !== "") {
-                      add_classes(classs);
-                      toast.success("Added the class");
+                      const exits = classes.find(
+                        (clas) => clas.class_label === classs
+                      );
+                      if (!exits) {
+                        add_classes(classs);
+                        toast.success("Added the class");
+                      } else {
+                        toast.error("Class Already Exists");
+                      }
                     }
                   }}
                 >
@@ -87,7 +107,10 @@ function Home() {
                   setAction={setAction}
                   action={action}
                 />
-                <button className="px-4 py-3 text-white bg-green-500 rounded-full font-medium ">
+                <button
+                  onClick={submit}
+                  className="px-4 py-3 text-white bg-green-500 rounded-full font-medium "
+                >
                   Save Changes
                 </button>
               </div>

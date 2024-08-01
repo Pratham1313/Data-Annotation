@@ -1,7 +1,7 @@
 import { RiRectangleLine } from "react-icons/ri";
 import { BsVectorPen } from "react-icons/bs";
 
-function Options({ Color, setColor, action, setAction }) {
+function Options({ action, setAction }) {
   return (
     <div className=" w-[7rem]  h-[55.5px] bg-slate-500 rounded-full flex justify-center items-center gap-2 ">
       <button
