@@ -11,18 +11,51 @@ function Stages({ images, action, current }) {
   const stageRef = useRef();
   const [zoomEnabled, setZoomEnabled] = useState(true);
 
-  const { all_annotations, set_allAnnotations, classes, class_label } =
-    useStore();
+  const {
+    all_annotations,
+    set_allAnnotations,
+    classes,
+    class_label,
+    openModal, // Access openModal function
+  } = useStore();
 
   const [annotations, setAnnotations] = useState(all_annotations);
+  const [pendingAnnotation, setPendingAnnotation] = useState(null);
+
   useEffect(() => {
     setAnnotations(all_annotations);
   }, [all_annotations]);
 
+  useEffect(() => {
+    if (pendingAnnotation && class_label) {
+      const current_class = classes.find(
+        (classItem) => classItem.class_label === class_label
+      );
+
+      set_allAnnotations((prevAnnotations) =>
+        prevAnnotations.map((entry) =>
+          entry.image_id === current
+            ? {
+                ...entry,
+                annotations: entry.annotations.map((annotation) =>
+                  annotation.class_id === pendingAnnotation.class_id
+                    ? {
+                        ...annotation,
+                        class_name: current_class?.class_label || "",
+                        Color: current_class?.color,
+                        edit: true,
+                      }
+                    : annotation
+                ),
+              }
+            : entry
+        )
+      );
+      setPendingAnnotation(null); // Clear pending annotation
+    }
+  }, [class_label, pendingAnnotation, classes, current, set_allAnnotations]);
+
   const currentImage = annotations.find((image) => image.image_id === current);
-  const current_class = classes.find(
-    (classItem) => classItem.class_label === class_label
-  );
 
   const selectedImage_ID = useRef(null);
   const [hoveredId, setHoveredId] = useState(null);
@@ -31,41 +64,36 @@ function Stages({ images, action, current }) {
   const moved = useRef(false);
 
   function onMouseDown() {
-    if (current_class) {
-      selectedImage_ID.current = null;
-      if (!action) {
-        toast.error("Select type of bounding box");
-        return;
-      }
-      const stage = stageRef.current;
-      const { x, y } = stage.getPointerPosition();
-      selectedImage_ID.current = Math.random(); // random id
-      isPainting.current = true;
-      set_allAnnotations((prevAnnotations) =>
-        prevAnnotations.map((entry) =>
-          entry.image_id === current
-            ? {
-                ...entry,
-                annotations: [
-                  ...entry.annotations,
-                  {
-                    class_id: selectedImage_ID.current,
-                    class_name: "",
-                    x,
-                    y,
-                    width: 0,
-                    height: 0,
-                    Color: current_class.color,
-                    edit: false,
-                  },
-                ],
-              }
-            : entry
-        )
-      );
-    } else {
-      toast.error("Please Select Class First");
+    if (!action) {
+      toast.error("Select type of bounding box");
+      return;
     }
+    const stage = stageRef.current;
+    const { x, y } = stage.getPointerPosition();
+    selectedImage_ID.current = Math.random(); // random id
+    isPainting.current = true;
+    set_allAnnotations((prevAnnotations) =>
+      prevAnnotations.map((entry) =>
+        entry.image_id === current
+          ? {
+              ...entry,
+              annotations: [
+                ...entry.annotations,
+                {
+                  class_id: selectedImage_ID.current,
+                  class_name: "",
+                  x,
+                  y,
+                  width: 0,
+                  height: 0,
+                  Color: "black",
+                  edit: false,
+                },
+              ],
+            }
+          : entry
+      )
+    );
   }
 
   function onMouseMove() {
@@ -95,6 +123,10 @@ function Stages({ images, action, current }) {
 
   function onPointerUp() {
     if (moved.current) {
+      const current_class = classes.find(
+        (classItem) => classItem.class_label === class_label
+      );
+
       set_allAnnotations((prevAnnotations) =>
         prevAnnotations.map((entry) =>
           entry.image_id === current
@@ -104,7 +136,8 @@ function Stages({ images, action, current }) {
                   annotation.class_id === selectedImage_ID.current
                     ? {
                         ...annotation,
-                        class_name: current_class.class_label,
+                        class_name: current_class?.class_label || "",
+                        Color: current_class?.color,
                         edit: true,
                       }
                     : annotation
@@ -113,6 +146,13 @@ function Stages({ images, action, current }) {
             : entry
         )
       );
+
+      if (!class_label) {
+        openModal();
+        setPendingAnnotation({
+          class_id: selectedImage_ID.current,
+        });
+      }
     }
 
     isPainting.current = false;
@@ -214,7 +254,7 @@ function Stages({ images, action, current }) {
                   onMouseDown={onMouseDown}
                   onMouseMove={onMouseMove}
                   onMouseUp={onPointerUp}
-                  className=" overflow-hidden"
+                  className="overflow-hidden"
                 >
                   <Layer>
                     <Konvaimage image={images[current]} />
@@ -236,10 +276,10 @@ function Stages({ images, action, current }) {
                           annotation.edit && (
                             <>
                               <Text
-                                x={annotation.x}
+                                x={annotation.x - 15}
                                 y={annotation.y + 5}
                                 text="Delete"
-                                fontSize={10}
+                                fontSize={16}
                                 fill="red"
                                 onClick={() =>
                                   handleDelete(annotation.class_id)

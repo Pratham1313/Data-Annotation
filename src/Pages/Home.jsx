@@ -6,6 +6,7 @@ import useStore from "../Zustand/Alldata";
 import toast from "react-hot-toast";
 import axios from "axios";
 import AnnotationsLabels from "./Components/Drawing/AnnotationsLabels";
+import Modal from "./Components/Drawing/Modal";
 
 function Home() {
   const {
@@ -22,6 +23,9 @@ function Home() {
     classes,
     add_classes,
     all_annotations,
+    isModalOpen,
+    openModal,
+    closeModal,
   } = useStore();
 
   const [annotations, setAnnotations] = useState(all_annotations); //just for converting in array it wasy giving error
@@ -62,6 +66,7 @@ function Home() {
 
   return (
     <div className="w-full h-screen flex justify-center items-center bg-gradient-to-t from-purple-900 to-slate-900 overflow-hidden">
+      {isModalOpen && <Modal classes={classes} />}
       {imageSrc ? (
         <div className="flex w-full h-screen">
           <div className="w-[20vw] h-screen rounded-r-xl bg-gradient-to-t from-purple-900 to-neutral-900 border-r-4 border-purple-900 py-6 pt-10 px-[20px]">

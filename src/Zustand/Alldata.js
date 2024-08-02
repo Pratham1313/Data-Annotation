@@ -2,28 +2,28 @@ import create from "zustand";
 
 const isValidColor = (color) => /^#[0-9A-F]{6}$/i.test(color);
 const brightColors = [
-  "#00FF00", // Lime
-  "#0000FF", // Blue
-  "#FFFF00", // Yellow
-  "#FF00FF", // Magenta
-  "#00FFFF", // Cyan
-  "#FF4500", // Orange Red
-  "#32CD32", // Lime Green
-  "#8A2BE2", // Blue Violet
-  "#FFD700", // Gold
-  "#ADFF2F", // Green Yellow
-  "#FF69B4", // Hot Pink
-  "#00CED1", // Dark Turquoise
-  "#FF6347", // Tomato
-  "#7FFF00", // Chartreuse
-  "#40E0D0", // Turquoise
-  "#DA70D6", // Orchid
-  "#EEE8AA", // Pale Goldenrod
-  "#8B0000", // Dark Red
+  "#00FF00",
+  "#0000FF",
+  "#FFFF00",
+  "#FF00FF",
+  "#00FFFF",
+  "#FF4500",
+  "#32CD32",
+  "#8A2BE2",
+  "#FFD700",
+  "#ADFF2F",
+  "#FF69B4",
+  "#00CED1",
+  "#FF6347",
+  "#7FFF00",
+  "#40E0D0",
+  "#DA70D6",
+  "#EEE8AA",
+  "#8B0000",
 ];
 
 const randomBrightColor = (index) => {
-  return brightColors[index];
+  return brightColors[index % brightColors.length];
 };
 
 const useStore = create((set) => ({
@@ -76,6 +76,15 @@ const useStore = create((set) => ({
         { class_label: newClassLabel, color: randomBrightColor(state.counter) },
       ],
       counter: state.counter + 1,
+    })),
+
+  isModalOpen: false,
+  openModal: () => set({ isModalOpen: true }),
+
+  closeModal: (newClassLabel) =>
+    set((state) => ({
+      isModalOpen: false,
+      class_label: newClassLabel || state.class_label,
     })),
 }));
 
