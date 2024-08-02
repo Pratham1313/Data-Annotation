@@ -3,20 +3,23 @@ import { Group, Layer, Rect, Stage, Text } from "react-konva";
 import Konvaimage from "../image/Konvaimage";
 import toast from "react-hot-toast";
 import useStore from "../../../Zustand/Alldata";
+import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
+import { FiZoomIn, FiZoomOut } from "react-icons/fi"; // Import icons
+import { RxReset } from "react-icons/rx"; // Import icon
 
 function Stages({ images, action, current }) {
   const stageRef = useRef();
+  const [zoomEnabled, setZoomEnabled] = useState(true);
 
   const { all_annotations, set_allAnnotations, classes, class_label } =
     useStore();
 
-  const [annotations, setAnnotations] = useState(all_annotations); //just for converting in array
+  const [annotations, setAnnotations] = useState(all_annotations);
   useEffect(() => {
     setAnnotations(all_annotations);
   }, [all_annotations]);
-  const currentImage = annotations.find((image) => image.image_id === current);
 
-  //getting color
+  const currentImage = annotations.find((image) => image.image_id === current);
   const current_class = classes.find(
     (classItem) => classItem.class_label === class_label
   );
@@ -92,26 +95,24 @@ function Stages({ images, action, current }) {
 
   function onPointerUp() {
     if (moved.current) {
-      {
-        set_allAnnotations((prevAnnotations) =>
-          prevAnnotations.map((entry) =>
-            entry.image_id === current
-              ? {
-                  ...entry,
-                  annotations: entry.annotations.map((annotation) =>
-                    annotation.class_id === selectedImage_ID.current
-                      ? {
-                          ...annotation,
-                          class_name: current_class.class_label,
-                          edit: true,
-                        }
-                      : annotation
-                  ),
-                }
-              : entry
-          )
-        );
-      }
+      set_allAnnotations((prevAnnotations) =>
+        prevAnnotations.map((entry) =>
+          entry.image_id === current
+            ? {
+                ...entry,
+                annotations: entry.annotations.map((annotation) =>
+                  annotation.class_id === selectedImage_ID.current
+                    ? {
+                        ...annotation,
+                        class_name: current_class.class_label,
+                        edit: true,
+                      }
+                    : annotation
+                ),
+              }
+            : entry
+        )
+      );
     }
 
     isPainting.current = false;
@@ -133,52 +134,127 @@ function Stages({ images, action, current }) {
     );
   }
 
+  useEffect(() => {
+    // Update zoomEnabled based on the action
+    setZoomEnabled(!action);
+  }, [action]);
+
   return (
     <>
       {images[current] && (
-        <Stage
-          ref={stageRef}
-          width={images[current].width}
-          height={images[current].height}
-          onMouseDown={onMouseDown}
-          onMouseMove={onMouseMove}
-          onMouseUp={onPointerUp}
-          className="border-2 bg-red-500 overflow-hidden"
-          style={{ width: images[current].width }}
+        <TransformWrapper
+          initialScale={1}
+          minScale={0.5}
+          maxScale={5}
+          wheel={{ disabled: !zoomEnabled }}
+          panning={{ disabled: !zoomEnabled }}
         >
-          <Layer>
-            <Konvaimage image={images[current]} />
-            {currentImage?.annotations.map((annotation) => (
-              <Group
-                key={annotation.class_id}
-                onMouseEnter={() => setHoveredId(annotation.class_id)}
-                onMouseLeave={() => setHoveredId(null)}
+          {({ zoomIn, zoomOut, resetTransform }) => (
+            <>
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "flex-start",
+                  marginBottom: 10,
+                  marginRight: 30,
+                }}
               >
-                <Rect
-                  x={annotation.x}
-                  y={annotation.y}
-                  strokeWidth={2}
-                  height={annotation.height}
-                  width={annotation.width}
-                  stroke={annotation.Color}
-                />
-
-                {hoveredId === annotation.class_id && annotation.edit && (
+                {zoomEnabled && (
                   <>
-                    <Text
-                      x={annotation.x + 5}
-                      y={annotation.y + 20}
-                      text="Delete"
-                      fontSize={15}
-                      fill="red"
-                      onClick={() => handleDelete(annotation.class_id)}
-                    />
+                    <button
+                      onClick={() => zoomIn()}
+                      style={{
+                        marginBottom: 10,
+                        padding: "5px 11px",
+                        fontSize: "24px",
+                        borderRadius: "5px",
+                        border: "1px solid #ccc",
+                        backgroundColor: "#fff",
+                        cursor: "pointer",
+                      }}
+                    >
+                      <FiZoomIn />
+                    </button>
+                    <button
+                      onClick={() => zoomOut()}
+                      style={{
+                        marginBottom: 10,
+                        padding: "5px 11px",
+                        fontSize: "24px",
+                        borderRadius: "5px",
+                        border: "1px solid #ccc",
+                        backgroundColor: "#fff",
+                        cursor: "pointer",
+                      }}
+                    >
+                      <FiZoomOut />
+                    </button>
+                    <button
+                      onClick={() => resetTransform()}
+                      style={{
+                        padding: "5px 11px",
+                        fontSize: "24px",
+                        borderRadius: "5px",
+                        border: "1px solid #ccc",
+                        backgroundColor: "#fff",
+                        cursor: "pointer",
+                      }}
+                    >
+                      <RxReset />
+                    </button>
                   </>
                 )}
-              </Group>
-            ))}
-          </Layer>
-        </Stage>
+              </div>
+              <TransformComponent>
+                <Stage
+                  ref={stageRef}
+                  width={800}
+                  height={450}
+                  onMouseDown={onMouseDown}
+                  onMouseMove={onMouseMove}
+                  onMouseUp={onPointerUp}
+                  className=" overflow-hidden"
+                >
+                  <Layer>
+                    <Konvaimage image={images[current]} />
+                    {currentImage?.annotations.map((annotation) => (
+                      <Group
+                        key={annotation.class_id}
+                        onMouseEnter={() => setHoveredId(annotation.class_id)}
+                        onMouseLeave={() => setHoveredId(null)}
+                      >
+                        <Rect
+                          x={annotation.x}
+                          y={annotation.y}
+                          strokeWidth={2}
+                          height={annotation.height}
+                          width={annotation.width}
+                          stroke={annotation.Color}
+                        />
+                        {hoveredId === annotation.class_id &&
+                          annotation.edit && (
+                            <>
+                              <Text
+                                x={annotation.x}
+                                y={annotation.y + 5}
+                                text="Delete"
+                                fontSize={10}
+                                fill="red"
+                                onClick={() =>
+                                  handleDelete(annotation.class_id)
+                                }
+                              />
+                            </>
+                          )}
+                      </Group>
+                    ))}
+                  </Layer>
+                </Stage>
+              </TransformComponent>
+            </>
+          )}
+        </TransformWrapper>
       )}
     </>
   );

@@ -8,7 +8,13 @@ function Options({ action, setAction }) {
         className={`rounded-full w-11 h-11 flex items-center justify-center ${
           action === "rectangle" ? "bg-slate-200" : "bg-slate-400"
         }`}
-        onClick={() => setAction("rectangle")}
+        onClick={() => {
+          if (action == "rectangle") {
+            setAction("");
+          } else {
+            setAction("rectangle");
+          }
+        }}
       >
         <RiRectangleLine style={{ width: "60%", height: "60%" }} />
       </button>
@@ -16,7 +22,13 @@ function Options({ action, setAction }) {
         className={`rounded-full w-11 h-11 flex items-center justify-center ${
           action === "polygon" ? "bg-gray-200" : "bg-slate-400"
         }`}
-        onClick={() => setAction("polygon")}
+        onClick={() => {
+          if (action == "polygon") {
+            setAction("");
+          } else {
+            setAction("polygon");
+          }
+        }}
       >
         <BsVectorPen style={{ width: "60%", height: "60%" }} />
       </button>

@@ -44,7 +44,7 @@ const useStore = create((set) => ({
   setImageSrc: (src) =>
     set(() => {
       const newAnnotations = src
-        ? src.map((_, index) => ({
+        ? src.map((i, index) => ({
             image_id: index,
             annotations: [],
           }))

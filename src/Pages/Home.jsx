@@ -5,6 +5,7 @@ import Options from "./Components/Drawing/Options";
 import useStore from "../Zustand/Alldata";
 import toast from "react-hot-toast";
 import axios from "axios";
+import AnnotationsLabels from "./Components/Drawing/AnnotationsLabels";
 
 function Home() {
   const {
@@ -23,7 +24,7 @@ function Home() {
     all_annotations,
   } = useStore();
 
-  const [annotations, setAnnotations] = useState(all_annotations); //just for converting in array
+  const [annotations, setAnnotations] = useState(all_annotations); //just for converting in array it wasy giving error
   useEffect(() => {
     setAnnotations(all_annotations);
   }, [all_annotations]);
@@ -51,8 +52,10 @@ function Home() {
       .catch((error) => {
         if (error.response) {
           console.error("Error response data:", error.response.data);
+          toast.error("Change Not Saved");
         } else {
           console.error("Network Error:", error.message);
+          toast.error("Change Not Saved");
         }
       });
   }
@@ -62,14 +65,7 @@ function Home() {
       {imageSrc ? (
         <div className="flex w-full h-screen">
           <div className="w-[20vw] h-screen rounded-r-xl bg-gradient-to-t from-purple-900 to-neutral-900 border-r-4 border-purple-900 py-6 pt-10 px-[20px]">
-            <div className="text-white text-3xl font-semibold">Annotations</div>
-            <div className=" pr-11 mt-5">
-              <div className="flex justify-between items-center text-white">
-                <div>Cat</div>
-                <div>20</div>
-                <div className="w-[50px] h-[22px] rounded-full bg-slate-800"></div>
-              </div>
-            </div>
+            <AnnotationsLabels currentImage={currentImage} classes={classes} />
           </div>
           <div className="w-[80vw] h-screen flex-col">
             <div className="w-full h-[70vh] ">
@@ -146,7 +142,18 @@ function Home() {
                   <div
                     className="relative flex-shrink-0"
                     key={index}
-                    onClick={() => setcurrent(index)}
+                    onClick={() => {
+                      console.log("ahaha", currentImage);
+
+                      if (Array(currentImage)[0]?.annotations.length > 0) {
+                        submit();
+                        setcurrent(index);
+                      } else if (
+                        Array(currentImage)[0]?.annotations.length == 0
+                      ) {
+                        setcurrent(index);
+                      }
+                    }}
                   >
                     <img
                       src={image.src}
