@@ -1,14 +1,15 @@
 import { useEffect, useState } from "react";
-import Imageupload from "./Components/image/Imageupload";
-import Stages from "./Components/Drawing/Stages";
-import Options from "./Components/Drawing/Options";
-import useStore from "../Zustand/Alldata";
+import Imageupload from "./image/Imageupload";
+import Stages from "./Drawing/Stages";
+import Options from "./Drawing/Options";
+import useStore from "../../Zustand/Alldata";
 import toast from "react-hot-toast";
 import axios from "axios";
-import AnnotationsLabels from "./Components/Drawing/AnnotationsLabels";
-import Modal from "./Components/Drawing/Modal";
+import AnnotationsLabels from "./Drawing/AnnotationsLabels";
+import Modal from "./Drawing/Modal";
+import { MdDeleteOutline } from "react-icons/md";
 
-function Home() {
+function Imagehome() {
   const {
     imageSrc,
     setImageSrc,
@@ -43,7 +44,7 @@ function Home() {
       "annotations",
       JSON.stringify({ annotations: currentImage.annotations })
     );
-
+    console.log(formData);
     axios
       .post("http://127.0.0.1:8000/upload", formData, {
         headers: {
@@ -145,24 +146,25 @@ function Home() {
               <div className="w-full h-[142px] overflow-auto custom-scrollbar flex gap-3 px-5">
                 {imageSrc.map((image, index) => (
                   <div
-                    className="relative flex-shrink-0"
+                    className="relative group flex-shrink-0"
                     key={index}
                     onClick={() => {
                       console.log("ahaha", currentImage);
-
-                      if (Array(currentImage)[0]?.annotations.length > 0) {
-                        submit();
-                        setcurrent(index);
-                      } else if (
-                        Array(currentImage)[0]?.annotations.length == 0
-                      ) {
-                        setcurrent(index);
+                      if (current != index) {
+                        if (Array(currentImage)[0]?.annotations.length > 0) {
+                          submit();
+                          setcurrent(index);
+                        } else if (
+                          Array(currentImage)[0]?.annotations.length == 0
+                        ) {
+                          setcurrent(index);
+                        }
                       }
                     }}
                   >
                     <img
                       src={image.src}
-                      className={`w-[140px] h-[120px] object-cover mt-3 ${
+                      className={`w-[140px] cursor-pointer h-[120px] object-cover mt-3 ${
                         current === index
                           ? "border-[4px] border-yellow-400"
                           : "border-[2px] border-black"
@@ -172,6 +174,14 @@ function Home() {
                     <div className="absolute top-[11px] p-1 bg-black text-white">
                       {current === index ? "Selected" : index + 1}
                     </div>
+                    <button
+                      className="absolute top-[11px] right-0 p-1 bg-black text-white cursor-pointer opacity-0 group-hover:opacity-100"
+                      onClick={() => {
+                        const a = confirm("Do you want to delete");
+                      }}
+                    >
+                      <MdDeleteOutline />
+                    </button>
                   </div>
                 ))}
               </div>
@@ -185,4 +195,4 @@ function Home() {
   );
 }
 
-export default Home;
+export default Imagehome;

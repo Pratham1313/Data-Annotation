@@ -1,12 +1,14 @@
 import { Route, Routes } from "react-router-dom";
-import Home from "./Pages/Home";
 import { Toaster } from "react-hot-toast";
+import Home from "./Pages/Projects section/Home.jsx";
+import Imagehome from "./Pages/Components/ImageHome.jsx";
 
 function App() {
   return (
     <div className="">
       <Routes>
         <Route path="/" element={<Home />}></Route>
+        <Route path="/project/:projectName" element={<Imagehome />} />
       </Routes>
       <Toaster />
     </div>

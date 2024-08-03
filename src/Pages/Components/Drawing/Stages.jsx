@@ -72,24 +72,32 @@ function Stages({ images, action, current }) {
     const { x, y } = stage.getPointerPosition();
     selectedImage_ID.current = Math.random(); // random id
     isPainting.current = true;
+
+    let newAnnotation = {
+      class_id: selectedImage_ID.current,
+      class_name: "",
+      x,
+      y,
+      width: 0,
+      height: 0,
+      Color: "black",
+      edit: false,
+    };
+
+    if (class_label) {
+      const current_class = classes.find(
+        (classItem) => classItem.class_label === class_label
+      );
+      newAnnotation.class_name = current_class?.class_label || "";
+      newAnnotation.Color = current_class?.color || "black";
+    }
+
     set_allAnnotations((prevAnnotations) =>
       prevAnnotations.map((entry) =>
         entry.image_id === current
           ? {
               ...entry,
-              annotations: [
-                ...entry.annotations,
-                {
-                  class_id: selectedImage_ID.current,
-                  class_name: "",
-                  x,
-                  y,
-                  width: 0,
-                  height: 0,
-                  Color: "black",
-                  edit: false,
-                },
-              ],
+              annotations: [...entry.annotations, newAnnotation],
             }
           : entry
       )

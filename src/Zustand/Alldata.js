@@ -86,6 +86,19 @@ const useStore = create((set) => ({
       isModalOpen: false,
       class_label: newClassLabel || state.class_label,
     })),
+
+  isProjectModalOpen: false,
+  openProjectModal: () => set({ isProjectModalOpen: true }),
+  closeProjectModal: () => set({ isProjectModalOpen: false }),
+
+  projects: [],
+  addProject: (project_name, project_description) =>
+    set((state) => ({
+      projects: [...state.projects, { project_name, project_description }],
+    })),
+
+  project_name: null,
+  setprojectname: (project_name) => set({ project_name }),
 }));
 
 export default useStore;

@@ -1,33 +1,24 @@
 import React from "react";
 
 function AnnotationsLabels({ currentImage, classes }) {
-  const cc = Array(currentImage);
-  const ccc = cc[0]?.annotations || [];
-
+  const annotations = currentImage?.annotations || [];
   const classList = Array.isArray(classes) ? classes : [];
 
-  const inCount = classList.map((c) => ({
-    class_label: c.class_label,
-    count: 0,
-    color: c.color,
-  }));
-
-  if (Array.isArray(ccc)) {
-    ccc.forEach((item) => {
-      const classItem = inCount.find((c) => c.class_label === item.class_name);
-      if (classItem) {
-        classItem.count++;
-      }
-    });
-  }
-
-  const count = inCount.filter((c) => c.count > 0);
+  const counts = classList
+    .map((c) => ({
+      class_label: c.class_label,
+      count: annotations.filter(
+        (item) => item.class_name === c.class_label && item.width !== 0
+      ).length,
+      color: c.color,
+    }))
+    .filter((c) => c.count > 0);
 
   return (
     <>
       <div className="text-white text-3xl font-semibold">Annotations</div>
       <div className="pr-11 mt-5">
-        {count.map((item) => (
+        {counts.map((item) => (
           <div
             key={item.class_label}
             className="flex justify-between items-center text-white mb-2"
@@ -36,7 +27,7 @@ function AnnotationsLabels({ currentImage, classes }) {
             <div>{item.count}</div>
             <div
               className="w-[50px] h-[22px] rounded-full"
-              style={{ backgroundColor: item.color }} // Use dynamic color
+              style={{ backgroundColor: item.color }}
             ></div>
           </div>
         ))}
